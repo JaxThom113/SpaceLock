@@ -1,18 +1,18 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+public class EnemyMovement : MonoBehaviour
 {
     public CharacterController controller;
-    public float speed = 12f;
+    public Transform player;
+    public float speed = 8f;
     public float gravity = -50f;
-    public float jumpHeight = 3f;
+    public float stoppingDistance = 5f;
     public Transform groundCheck;
     public float groundDistance = 0.4f;
     public LayerMask groundMask;
-
+    
     Vector3 velocity;
     bool isGrounded;
 
@@ -31,33 +31,30 @@ public class PlayerMovement : MonoBehaviour
         if (isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
-            animator.SetBool("Jump", false);
         }
 
-        // Horizontal and Vertical input buttons are listed in project input settings
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
+        float distance = Vector3.Distance(transform.position, player.position);
 
-        // move in the direction player is facing
-        Vector3 move = transform.right * x + transform.forward * z;
+        // move direction
+        Vector3 move = (player.position - transform.position).normalized;
+        move.y = 0f;
 
-        // running animation
-        if (move != Vector3.zero)
+        // only move toward player if further than stoppingDistance
+        if (distance > stoppingDistance)
         {
             animator.SetBool("Running", true);
+
+            if (move != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(move);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
+            }
+
+            controller.Move(move * speed * Time.deltaTime);
         }
         else
         {
             animator.SetBool("Running", false);
-        }
-
-        controller.Move(move * speed * Time.deltaTime);
-
-        // jump
-        if (Input.GetButtonDown("Jump") && isGrounded)
-        {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-            animator.SetBool("Jump", true);
         }
 
         velocity.y += gravity * Time.deltaTime;
