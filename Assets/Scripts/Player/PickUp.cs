@@ -16,6 +16,7 @@ public class PickUp : MonoBehaviour
     private int LayerNumber;
     private Vector3 moveVelocity; // persistent velocity storage
     private bool inOrOut = false; // false if out, true if in
+    private Vector3 previousPosition;
 
     void Start()
     {
@@ -80,6 +81,7 @@ public class PickUp : MonoBehaviour
             heldObjRb = pickUpObj.GetComponent<Rigidbody>(); //assign Rigidbody
             heldObjRb.isKinematic = true;
             outPos.position = heldObjRb.transform.position;
+            previousPosition = heldObj.transform.position;
         }
     }
 
@@ -88,12 +90,20 @@ public class PickUp : MonoBehaviour
         Physics.IgnoreCollision(heldObj.GetComponent<Collider>(), player.GetComponent<Collider>(), false); // enable collision with player
         heldObj.layer = 0; //object assigned back to default layer
         heldObjRb.isKinematic = false;
-        heldObj.transform.parent = null; //unparent object
-        heldObj = null; //undefine game object
+        
+        // calculate and apply velocity based on movement
+        Vector3 throwVelocity = (heldObj.transform.position - previousPosition) / Time.deltaTime;
+        heldObjRb.velocity = throwVelocity;
+        
+        heldObj.transform.parent = null; // unparent object
+        heldObj = null; // undefine game object
     }
 
     void MoveObject()
     {
+        // store previous position before moving
+        previousPosition = heldObj.transform.position;
+
         if (inOrOut)
         {
             // object is "brought in"

@@ -5,6 +5,7 @@ using UnityEngine;
 public class EnemyMovement : MonoBehaviour
 {
     public CharacterController controller;
+    public CapsuleCollider enemyCollider;
     public Transform player;
     public float speed = 8f;
     public float gravity = -50f;
@@ -17,10 +18,13 @@ public class EnemyMovement : MonoBehaviour
     bool isGrounded;
 
     private Animator animator;
+    private RagdollEnabler ragdollEnabler;
 
     void Start()
     {
         animator = GetComponentInChildren<Animator>();
+        ragdollEnabler = GetComponent<RagdollEnabler>();
+        enemyCollider = GetComponent<CapsuleCollider>();
     }
 
     // Update is called once per frame
@@ -59,5 +63,17 @@ public class EnemyMovement : MonoBehaviour
 
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.tag == "PickUp")
+        {
+            // activate ragdoll if colliding with PickUp tagged object
+            if (ragdollEnabler != null)
+            {
+                ragdollEnabler.startRagdoll = true;
+            }
+        }
     }
 }
