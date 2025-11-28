@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PickUp : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class PickUp : MonoBehaviour
     public LayerMask holdLayerMask; // get Player layer to avoid raycast hitting player character collider
     public float pickUpRange = 5f;
     public float smoothTime = 0.1f;
+    public Image reticle;
 
     private GameObject heldObj;
     private Rigidbody heldObjRb; 
@@ -17,6 +19,7 @@ public class PickUp : MonoBehaviour
     private Vector3 moveVelocity; // persistent velocity storage
     private bool inOrOut = false; // false if out, true if in
     private Vector3 previousPosition;
+    private Vector3 reticleScale;
 
     void Start()
     {
@@ -25,6 +28,27 @@ public class PickUp : MonoBehaviour
 
     void Update()
     {
+        if (reticle != null)
+        {
+            // smoothly scale reticle on click
+            if (Input.GetMouseButton(0))
+            {
+                reticleScale = new Vector3(0.25f, 0.25f, 0.25f);
+            }
+            else
+            {
+                reticleScale = new Vector3(0.15f, 0.15f, 0.15f);;
+            }
+
+            // smoothly interpolate to target scale
+            reticle.transform.localScale = Vector3.Lerp(
+                reticle.transform.localScale,
+                reticleScale,
+                Time.deltaTime * 10f
+            );
+        }
+
+        // switch between bringing an object in/out
         if (heldObj != null)
         {
             if (Input.GetAxisRaw("Mouse ScrollWheel") > 0)
@@ -38,7 +62,8 @@ public class PickUp : MonoBehaviour
             }
         }
        
-        if (Input.GetMouseButton(0)) // press and hold to pick up
+        // press and hold to pick up
+        if (Input.GetMouseButton(0)) 
         {
             // player is not holding an object
             if (heldObj == null)

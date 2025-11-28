@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class EnemyMovement : MonoBehaviour
 {
     public CharacterController controller;
     public CapsuleCollider enemyCollider;
     public Transform player;
+    public bool chase;
     public float speed = 8f;
     public float gravity = -50f;
     public float stoppingDistance = 5f;
@@ -20,6 +22,11 @@ public class EnemyMovement : MonoBehaviour
     private Animator animator;
     private RagdollEnabler ragdollEnabler;
 
+    private float damageTimer = 0f;
+    private float damageInterval = 0.25f; // damage every 1/4 second
+    private int damageAmount = 5;
+    private bool isCollidingWithPlayer = false;
+
     void Start()
     {
         animator = GetComponentInChildren<Animator>();
@@ -27,7 +34,6 @@ public class EnemyMovement : MonoBehaviour
         enemyCollider = GetComponent<CapsuleCollider>();
     }
 
-    // Update is called once per frame
     void Update()
     {
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
@@ -43,8 +49,7 @@ public class EnemyMovement : MonoBehaviour
         Vector3 move = (player.position - transform.position).normalized;
         move.y = 0f;
 
-        // only move toward player if further than stoppingDistance
-        if (distance > stoppingDistance)
+        if (chase == true)
         {
             animator.SetBool("Running", true);
 
@@ -55,10 +60,18 @@ public class EnemyMovement : MonoBehaviour
             }
 
             controller.Move(move * speed * Time.deltaTime);
-        }
-        else
+        }   
+
+        if (isCollidingWithPlayer)
         {
-            animator.SetBool("Running", false);
+            damageTimer += Time.deltaTime;
+            
+            // check if time interval has passed before dealing damage again
+            if (damageTimer >= damageInterval)
+            {
+                DamagePlayer();
+                damageTimer = 0f;
+            }
         }
 
         velocity.y += gravity * Time.deltaTime;
@@ -67,13 +80,49 @@ public class EnemyMovement : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.tag == "PickUp")
+        if (collision.gameObject.tag == "PickUp" || collision.gameObject.tag == "Hazard")
         {
             // activate ragdoll if colliding with PickUp tagged object
             if (ragdollEnabler != null)
             {
                 ragdollEnabler.startRagdoll = true;
             }
+        }
+
+        if (collision.gameObject.tag == "Player")
+        {
+            isCollidingWithPlayer = true;
+            damageTimer = 0f;
+        }
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.tag == "Player")
+        {
+            isCollidingWithPlayer = false;
+            damageTimer = 0f;
+        }
+    }
+
+    void DamagePlayer()
+    {
+        // get healthbar component
+        HealthBar healthBar = FindObjectOfType<HealthBar>();
+        
+        if (healthBar != null)
+        {
+            int currentHealth = (int)healthBar.slider.value;
+            currentHealth -= damageAmount;
+            
+            // when the player "dies" send them back to main menu
+            if (currentHealth <= 0)
+            {
+                SceneManager.LoadScene(0);
+                Cursor.lockState = CursorLockMode.None;
+            }
+            
+            healthBar.SetHealth(currentHealth);
         }
     }
 }

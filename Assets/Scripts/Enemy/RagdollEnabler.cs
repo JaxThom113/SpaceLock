@@ -21,16 +21,7 @@ public class RagdollEnabler : MonoBehaviour
         joints = ragdollRoot.GetComponentsInChildren<CharacterJoint>();
         colliders = ragdollRoot.GetComponentsInChildren<Collider>();
         
-        previousRagdollState = startRagdoll;
-        
-        if (startRagdoll)
-        {
-            EnableRagdoll();
-        }
-        else
-        {
-            EnableAnimator();
-        }
+        previousRagdollState = startRagdoll; // need this to fix slow motion ragdoll bug
     }
 
     void Update()
@@ -41,10 +32,6 @@ public class RagdollEnabler : MonoBehaviour
             if (startRagdoll)
             {
                 EnableRagdoll();
-            }
-            else
-            {
-                EnableAnimator();
             }
             
             previousRagdollState = startRagdoll;
@@ -70,33 +57,8 @@ public class RagdollEnabler : MonoBehaviour
         foreach (Rigidbody rigidbody in rigidbodies)
         {
             rigidbody.isKinematic = false; // Important: make sure rigidbodies are not kinematic
-            rigidbody.velocity = Vector3.zero; // Now only called ONCE
             rigidbody.detectCollisions = true;
             rigidbody.useGravity = true;
-        }
-    }
-
-    void EnableAnimator()
-    {
-        GetComponent<EnemyMovement>().enabled = true;
-        enemyController.enabled = true;
-        enemyCollider.enabled = true;
-
-        // enable animator, disable collisions on limbs
-        animator.enabled = true;
-        foreach (CharacterJoint joint in joints)
-        {
-            joint.enableCollision = false;
-        }
-        foreach (Collider collider in colliders)
-        {
-            collider.enabled = false;
-        }
-        foreach (Rigidbody rigidbody in rigidbodies)
-        {
-            rigidbody.isKinematic = true; // Make kinematic when not ragdolling
-            rigidbody.detectCollisions = false;
-            rigidbody.useGravity = false;
         }
     }
 }
