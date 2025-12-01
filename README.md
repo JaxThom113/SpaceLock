@@ -1,6 +1,7 @@
 # SpaceLock
 
 Final project for CAP3027 Introduction to Computational Media
+
 **A Mouse is needed to play this game as intended**
 
 <img alt="Level 1 Screenshot" width="500" src="./Assets/Art/Images/screenshot1.png">
@@ -20,7 +21,7 @@ Escape - pause menu
 
 ### Rubric Qualifications
 
-- Player Charater
+- Player Character
     - First-person character controller
     - UI for healthbar & enemy counter
 - Interactables
