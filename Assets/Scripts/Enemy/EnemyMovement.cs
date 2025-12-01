@@ -21,10 +21,11 @@ public class EnemyMovement : MonoBehaviour
 
     private Animator animator;
     private RagdollEnabler ragdollEnabler;
+    private HealthBar healthBar;
+    private Counter counter;
 
     private float damageTimer = 0f;
     private float damageInterval = 0.25f; // damage every 1/4 second
-    private int damageAmount = 5;
     private bool isCollidingWithPlayer = false;
 
     void Start()
@@ -32,6 +33,8 @@ public class EnemyMovement : MonoBehaviour
         animator = GetComponentInChildren<Animator>();
         ragdollEnabler = GetComponent<RagdollEnabler>();
         enemyCollider = GetComponent<CapsuleCollider>();
+        healthBar = FindObjectOfType<HealthBar>();
+        counter = FindObjectOfType<Counter>();
     }
 
     void Update()
@@ -69,7 +72,7 @@ public class EnemyMovement : MonoBehaviour
             // check if time interval has passed before dealing damage again
             if (damageTimer >= damageInterval)
             {
-                DamagePlayer();
+                healthBar.DamagePlayer();
                 damageTimer = 0f;
             }
         }
@@ -86,6 +89,7 @@ public class EnemyMovement : MonoBehaviour
             if (ragdollEnabler != null)
             {
                 ragdollEnabler.startRagdoll = true;
+                counter.EnemyDown();
             }
         }
 
@@ -102,27 +106,6 @@ public class EnemyMovement : MonoBehaviour
         {
             isCollidingWithPlayer = false;
             damageTimer = 0f;
-        }
-    }
-
-    void DamagePlayer()
-    {
-        // get healthbar component
-        HealthBar healthBar = FindObjectOfType<HealthBar>();
-        
-        if (healthBar != null)
-        {
-            int currentHealth = (int)healthBar.slider.value;
-            currentHealth -= damageAmount;
-            
-            // when the player "dies" send them back to main menu
-            if (currentHealth <= 0)
-            {
-                SceneManager.LoadScene(0);
-                Cursor.lockState = CursorLockMode.None;
-            }
-            
-            healthBar.SetHealth(currentHealth);
         }
     }
 }

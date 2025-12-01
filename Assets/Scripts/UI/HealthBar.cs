@@ -2,22 +2,45 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class HealthBar : MonoBehaviour
 {
     public Slider slider;
     public Text text;
+    public GameObject loseOverlay;
 
-    // public functions so you can call them from other scripts
-    public void SetMaxHealth(int health)
+    private int health = 100;
+    private int enemyDamage = 5;
+
+    void Start()
     {
         slider.maxValue = health;
-        slider.value = health;
+        text.text = health.ToString();
     }
 
-    public void SetHealth(int health)
+    // public functions so you can call them from other scripts
+    public void DamagePlayer()
     {
+        health -= enemyDamage;
         slider.value = health;
         text.text = health.ToString();
+            
+        // lose state
+        if (health <= 0)
+        {
+            StartCoroutine(OpenLoseOverlay());
+        }
+    }
+
+    IEnumerator OpenLoseOverlay()
+    {
+        loseOverlay.SetActive(true);
+        Cursor.lockState = CursorLockMode.None;
+
+        yield return new WaitForSeconds(3f); // delay 3 seconds
+
+        loseOverlay.SetActive(false);
+        SceneManager.LoadScene(1);
     }
 }
